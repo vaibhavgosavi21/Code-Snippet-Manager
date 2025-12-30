@@ -1,12 +1,15 @@
 {
-  "name": "snippet-manager-backend",
+  "name": "code-snippet-manager",
   "version": "1.0.0",
-  "description": "Backend for Code Snippet Manager",
+  "description": "Full-stack Code Snippet Manager",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "create-admin": "node create-admin.js"
+    "create-admin": "node create-admin.js",
+    "build": "cd ../frontend && npm run build && xcopy /E /I /Y dist ..\\backend\\public",
+    "install-client": "cd ../frontend && npm install",
+    "heroku-postbuild": "npm run install-client && npm run build"
   },
   "dependencies": {
     "express": "^4.18.2",
@@ -14,7 +17,8 @@
     "cors": "^2.8.5",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    "dotenv": "^16.3.1"
+    "dotenv": "^16.3.1",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
