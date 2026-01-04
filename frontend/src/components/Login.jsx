@@ -124,6 +124,16 @@ const Login = () => {
               {isLogin ? 'Need an account? Sign up' : 'Already have an account? Sign in'}
             </button>
           </div>
+
+          {/* Admin Login Hint */}
+          {isLogin && (
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+              <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
+                <Shield className="w-3 h-3 inline mr-1" />
+                Admin Login: admin@example.com / admin123
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

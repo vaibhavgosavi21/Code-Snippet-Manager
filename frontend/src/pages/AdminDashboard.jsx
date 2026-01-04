@@ -55,6 +55,7 @@ const AdminDashboard = () => {
       const response = await axios.get(`/api/admin/users/${userId}/activity`);
       setUserActivity(response.data);
       setSelectedUser(users.find(u => u._id === userId));
+      setActiveTab('user-activity'); // Switch to activity view
     } catch (error) {
       console.error('Error fetching user activity:', error);
     }
@@ -93,7 +94,7 @@ const AdminDashboard = () => {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <nav className="flex space-x-8">
-            {['overview', 'users', 'snippets', 'activity'].map(tab => (
+            {['overview', 'users', 'snippets', 'activity', ...(selectedUser ? ['user-activity'] : [])].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -103,7 +104,7 @@ const AdminDashboard = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700'
                 }`}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab === 'user-activity' ? `${selectedUser?.username} Activity` : tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
             ))}
           </nav>
@@ -142,51 +143,56 @@ const AdminDashboard = () => {
         )}
 
         {activeTab === 'users' && (
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Users</h3>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">User</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Role</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Last Login</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                  {users.map(user => (
-                    <tr key={user._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{user.username}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">User Management</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">View and manage all registered users</p>
+              </div>
+              <div className="h-96 overflow-auto p-4" style={{scrollBehavior: 'smooth'}}>
+                <div className="space-y-3">
+                  {users.map(user => {
+                    const userSnippets = snippets.filter(s => s.userId?._id === user._id);
+                    return (
+                      <div key={user._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                        <div className="flex items-center space-x-4">
+                          <div className="h-12 w-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
+                            <span className="text-white font-medium">
+                              {user.username.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.username}</div>
+                            <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                user.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400' : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                              }`}>
+                                {user.role}
+                              </span>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {userSnippets.length} snippets
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
-                        }`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {new Date(user.lastLogin).toLocaleDateString()}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => fetchUserActivity(user._id)}
-                          className="text-blue-600 hover:text-blue-900"
-                        >
-                          View Activity
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        <div className="flex items-center space-x-4">
+                          <div className="text-right text-sm text-gray-500 dark:text-gray-400">
+                            <div>Joined: {new Date(user.createdAt).toLocaleDateString()}</div>
+                            <div>Last login: {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}</div>
+                          </div>
+                          <button
+                            onClick={() => fetchUserActivity(user._id)}
+                            className="bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/20 dark:hover:bg-blue-800/30 text-blue-600 dark:text-blue-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                          >
+                            View Activity
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -232,49 +238,119 @@ const AdminDashboard = () => {
         {activeTab === 'activity' && (
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Recent Activities</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">Recent Platform Activities</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Latest activities across all users</p>
             </div>
             <div className="p-6">
-              {stats.recentActivities.map((activity, index) => (
-                <div key={index} className="flex items-center py-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900 dark:text-white">
-                      <span className="font-medium">{activity.userId?.username}</span> {activity.action.replace('_', ' ')}
-                    </p>
-                    {activity.details && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{activity.details}</p>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {new Date(activity.timestamp).toLocaleString()}
-                  </div>
+              {stats.recentActivities.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">No activities yet</p>
+              ) : (
+                <div className="space-y-4">
+                  {stats.recentActivities.map((activity, index) => (
+                    <div key={index} className="flex items-start justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                      <div className="flex items-start space-x-3">
+                        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                          activity.action.includes('create') ? 'bg-green-100 text-green-600' :
+                          activity.action.includes('update') ? 'bg-blue-100 text-blue-600' :
+                          activity.action.includes('delete') ? 'bg-red-100 text-red-600' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                          {activity.action.includes('create') && '+'}
+                          {activity.action.includes('update') && '✎'}
+                          {activity.action.includes('delete') && '×'}
+                          {activity.action.includes('login') && '→'}
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            <span className="font-semibold">{activity.userId?.username || 'Unknown User'}</span>
+                            {' '}{activity.action.replace('_', ' ').toLowerCase()}
+                          </p>
+                          {activity.details && (
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{activity.details}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+                        <div>{new Date(activity.timestamp).toLocaleDateString()}</div>
+                        <div>{new Date(activity.timestamp).toLocaleTimeString()}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
 
-        {selectedUser && userActivity.length > 0 && (
-          <div className="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg">
+        {activeTab === 'user-activity' && selectedUser && (
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                Activity for {selectedUser.username}
-              </h3>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Activity Timeline for {selectedUser.username}
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {selectedUser.email} • {userActivity.length} activities
+                  </p>
+                </div>
+                <button
+                  onClick={() => {setSelectedUser(null); setUserActivity([]); setActiveTab('users');}}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
             </div>
             <div className="p-6">
-              {userActivity.map((activity, index) => (
-                <div key={index} className="flex items-center py-2 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900 dark:text-white">{activity.action.replace('_', ' ')}</p>
-                    {activity.details && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{activity.details}</p>
-                    )}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {new Date(activity.timestamp).toLocaleString()}
-                  </div>
+              {userActivity.length === 0 ? (
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8">No activities found for this user</p>
+              ) : (
+                <div className="flow-root">
+                  <ul className="-mb-8">
+                    {userActivity.map((activity, index) => (
+                      <li key={index}>
+                        <div className="relative pb-8">
+                          {index !== userActivity.length - 1 && (
+                            <span className="absolute top-4 left-4 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-600" aria-hidden="true" />
+                          )}
+                          <div className="relative flex space-x-3">
+                            <div>
+                              <span className={`h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white dark:ring-gray-800 ${
+                                activity.action.includes('create') ? 'bg-green-500' :
+                                activity.action.includes('update') ? 'bg-blue-500' :
+                                activity.action.includes('delete') ? 'bg-red-500' :
+                                'bg-gray-500'
+                              }`}>
+                                {activity.action.includes('create') && <span className="text-white text-xs font-bold">+</span>}
+                                {activity.action.includes('update') && <span className="text-white text-xs">✎</span>}
+                                {activity.action.includes('delete') && <span className="text-white text-xs font-bold">×</span>}
+                                {activity.action.includes('login') && <span className="text-white text-xs">→</span>}
+                              </span>
+                            </div>
+                            <div className="min-w-0 flex-1 pt-1.5 flex justify-between space-x-4">
+                              <div>
+                                <p className="text-sm text-gray-900 dark:text-white font-medium">
+                                  {activity.action.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                </p>
+                                {activity.details && (
+                                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    {activity.details}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="text-right text-sm whitespace-nowrap text-gray-500 dark:text-gray-400">
+                                <div className="font-medium">{new Date(activity.timestamp).toLocaleDateString()}</div>
+                                <div className="text-xs">{new Date(activity.timestamp).toLocaleTimeString()}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
