@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import Login from './components/Login';
+import AdminLogin from './components/AdminLogin';
 import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import About from './pages/About';
@@ -29,6 +30,10 @@ const AppRoutes = () => {
       <Route 
         path="/login" 
         element={user ? <Navigate to="/" /> : <Login />} 
+      />
+      <Route 
+        path="/admin-login" 
+        element={user?.role === 'admin' ? <Navigate to="/admin" /> : <AdminLogin />} 
       />
       <Route 
         path="/" 

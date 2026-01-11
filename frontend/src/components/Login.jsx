@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Code2, Sparkles, Shield } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
 
 const Login = () => {
@@ -9,6 +10,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const { login, register } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -125,13 +127,16 @@ const Login = () => {
             </button>
           </div>
 
-          {/* Admin Login Hint */}
+          {/* Admin Login Link */}
           {isLogin && (
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
-              <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
-                <Shield className="w-3 h-3 inline mr-1" />
-                Admin Login: admin@example.com / admin123
-              </p>
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => navigate('/admin-login')}
+                className="inline-flex items-center gap-2 text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium transition-colors duration-200"
+              >
+                <Shield className="w-4 h-4" />
+                Admin Login
+              </button>
             </div>
           )}
         </div>
